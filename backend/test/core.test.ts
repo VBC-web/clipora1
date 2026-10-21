@@ -1,0 +1,6 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {detectProvider,parseHttpUrl,assertPublicAddress} from '../src/utils/url-validation.js';import {parseTimestamp,validateRange} from '../src/utils/time-validation.js';
+ test('accepts valid HTTP URLs and rejects unsafe protocols',()=>{assert.equal(parseHttpUrl(' https://example.com/v.mp4 ').hostname,'example.com');assert.throws(()=>parseHttpUrl('file:///etc/passwd'));assert.throws(()=>parseHttpUrl('javascript:alert(1)'));});
+test('identifies supported platform hosts',()=>{assert.equal(detectProvider('https://youtu.be/abc'),'youtube');assert.equal(detectProvider('https://www.instagram.com/reel/abc'),'instagram');assert.equal(detectProvider('https://example.com/video.mp4'),'direct');});
+test('rejects private and loopback addresses',()=>{assert.throws(()=>assertPublicAddress('127.0.0.1'));assert.throws(()=>assertPublicAddress('10.1.2.3'));assert.doesNotThrow(()=>assertPublicAddress('8.8.8.8'));});
+test('parses timestamps and validates ranges',()=>{assert.equal(parseTimestamp('01:02:03'),3723);assert.equal(parseTimestamp('90'),90);assert.deepEqual(validateRange('00:00:02','00:00:05',10),{start:2,end:5,duration:3});assert.throws(()=>validateRange('5','5',10));assert.throws(()=>validateRange('0','11',10));assert.throws(()=>validateRange('0','3700',undefined,3600));});
