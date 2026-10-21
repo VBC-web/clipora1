@@ -5,7 +5,8 @@ const hostProvider: Array<[RegExp, Provider]> = [
   [/(^|\.)youtube\.com$|(^|\.)youtu\.be$/i,'youtube'],
   [/(^|\.)instagram\.com$/i,'instagram'], [/(^|\.)tiktok\.com$/i,'tiktok'],
   [/(^|\.)facebook\.com$|(^|\.)fb\.watch$/i,'facebook'], [/(^|\.)x\.com$|(^|\.)twitter\.com$/i,'x'],
-  [/(^|\.)twitch\.tv$/i,'twitch'], [/(^|\.)kick\.com$/i,'kick'], [/(^|\.)reddit\.com$|(^|\.)redd\.it$/i,'reddit'], [/(^|\.)vimeo\.com$/i,'vimeo']
+  [/(^|\.)twitch\.tv$/i,'twitch'], [/(^|\.)kick\.com$/i,'kick'], [/(^|\.)reddit\.com$|(^|\.)redd\.it$/i,'reddit'], [/(^|\.)vimeo\.com$/i,'vimeo'],
+  [/(^|\.)pinterest\.(com|[a-z]{2,3})$|(^|\.)pin\.it$/i,'pinterest'], [/(^|\.)threads\.net$/i,'threads']
 ];
 export function parseHttpUrl(raw: string): URL {
   let url: URL; try { url = new URL(raw.trim()); } catch { throw new Error('Enter a valid video URL.'); }
