@@ -25,31 +25,31 @@ export const PLATFORMS: Record<string, PlatformConfig> = {
     path: '/',
     badge: 'Universal Video Downloader',
     title: 'Clipora — Free Online Video Downloader (YouTube, TikTok, Instagram & More)',
-    metaDescription: 'Download videos from YouTube, TikTok, Instagram, Twitter/X, Facebook, Reddit, and 1000+ sites in Full HD, 4K, MP4 or MP3. Fast, free, and no watermark.',
+    metaDescription: 'Inspect publicly accessible video links and, where supported by the source, save available video or audio formats. Options vary by source.',
     keywords: 'video downloader, free video downloader, download video online, youtube downloader, tiktok downloader, instagram reels downloader, download mp4, convert to mp3',
-    heroHeadline: 'Download Any Video Online.',
-    heroHighlight: 'Fast, High Quality & Free.',
-    heroSub: 'Paste any video link from YouTube, Instagram, TikTok, Twitter/X, Facebook, or Reddit. Save in Full HD, MP4, or MP3 instantly with zero watermark.',
+    heroHeadline: 'Inspect and Download Videos.',
+    heroHighlight: 'Options Depend on the Source.',
+    heroSub: 'Paste a publicly accessible video link to inspect available media details and formats. Availability and quality vary by source.',
     placeholder: 'Paste video link here from YouTube, Instagram, TikTok, X, Facebook…',
     sampleUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
     color: '#a78bfa',
     iconSymbol: '▶',
     howToSteps: [
       { step: '01', title: 'Copy the Video Link', description: 'Copy the URL of the video or reel from your browser address bar or app share button.' },
-      { step: '02', title: 'Paste URL in Clipora', description: 'Paste the link into the input box above and click the Download button.' },
-      { step: '03', title: 'Choose Quality & Format', description: 'Select your preferred video resolution (4K, 1080p, 720p) or audio MP3.' },
-      { step: '04', title: 'Save to Your Device', description: 'Click Download to save the video directly to your PC, Mac, iPhone, or Android.' }
+      { step: '02', title: 'Paste URL in Clipora', description: 'Paste the link into the input box above and inspect the available media details.' },
+      { step: '03', title: 'Review Available Formats', description: 'Choose from the formats and qualities provided for that source.' },
+      { step: '04', title: 'Save If Supported', description: 'Start a download when the source and available format support it.' }
     ],
     features: [
-      { title: '1000+ Platforms Supported', description: 'Download from YouTube, TikTok, Instagram, Twitter/X, Facebook, Reddit, Twitch, and more.', icon: 'globe' },
-      { title: 'Full HD & 4K Quality', description: 'Preserve original video clarity with crisp 1080p, 2K, and 4K resolutions with high bitrate.', icon: 'film' },
-      { title: 'No Watermarks Added', description: 'Export clean videos without annoying logos, stamps, or intrusive watermarks.', icon: 'sparkles' },
-      { title: 'MP3 Audio Extraction', description: 'Extract crystal-clear 320kbps audio tracks from any video in one click.', icon: 'music' }
+      { title: 'Public Source Inspection', description: 'Inspect links that are publicly accessible without bypassing login or access controls.', icon: 'globe' },
+      { title: 'Source-Dependent Quality', description: 'Available resolutions and formats depend on the media source.', icon: 'film' },
+      { title: 'Temporary Processing', description: 'Download jobs and output files are temporary and removed according to server retention settings.', icon: 'shield' },
+      { title: 'Video and Audio Options', description: 'Video and audio formats are offered when available for the selected source.', icon: 'music' }
     ],
     faqs: [
       { question: 'Is Clipora free to use?', answer: 'Yes! Clipora is 100% free with no subscription, no hidden charges, and no account registration required.' },
-      { question: 'What video qualities are supported?', answer: 'We support all resolutions made available by the host platform, including 4K (2160p), 1440p, 1080p Full HD, 720p HD, and 480p, as well as MP3 audio extraction.' },
-      { question: 'Does Clipora store downloaded videos?', answer: 'No. Files are processed temporarily in server memory or cache for transfer and automatically wiped. We respect user privacy.' },
+      { question: 'What video qualities are supported?', answer: 'Available resolutions and audio formats depend on the source and are shown after link inspection.' },
+      { question: 'Does Clipora store downloaded videos?', answer: 'The server temporarily stores completed output files and removes them according to its configured retention period. Avoid submitting sensitive media.' },
       { question: 'Can I download videos on mobile devices?', answer: 'Yes, Clipora is fully responsive and works directly inside Chrome, Safari, Firefox, and Edge on iOS and Android devices.' }
     ]
   },
@@ -60,7 +60,7 @@ export const PLATFORMS: Record<string, PlatformConfig> = {
     path: '/youtube-video-downloader',
     badge: 'YouTube Downloader HD & MP3',
     title: 'YouTube Video Downloader — Download YouTube Videos & Shorts in 1080p & 4K | Clipora',
-    metaDescription: 'Free online YouTube video downloader. Save YouTube videos, Shorts, and audio in 1080p, 4K, 720p, MP4, and MP3 at high speed with no software required.',
+    metaDescription: 'Inspect publicly accessible YouTube videos and Shorts. Available metadata, resolutions, and audio formats depend on the source and current access.',
     keywords: 'youtube video downloader, download youtube shorts, youtube to mp4, youtube to mp3, 1080p youtube download, 4k youtube downloader, clipora youtube',
     heroHeadline: 'Download YouTube Videos & Shorts.',
     heroHighlight: 'In Full HD, 4K & MP3.',
@@ -94,12 +94,12 @@ export const PLATFORMS: Record<string, PlatformConfig> = {
     name: 'Instagram',
     path: '/instagram-video-downloader',
     badge: 'Instagram Reels & Video Downloader',
-    title: 'Instagram Video Downloader — Download Reels, Stories & Posts in HD | Clipora',
-    metaDescription: 'Download Instagram Reels, videos, and Stories online in high resolution MP4. Free, fast, watermark-free Instagram video downloader for PC, iPhone, and Android.',
+    title: 'Instagram Video Link Inspector — Reels and Public Posts | Clipora',
+    metaDescription: 'Inspect publicly accessible Instagram Reels and video links. Available metadata and formats depend on public access and source availability.',
     keywords: 'instagram video downloader, download instagram reels, instagram story downloader, ig video download, instagram to mp4, save ig reels',
-    heroHeadline: 'Download Instagram Reels & Videos.',
-    heroHighlight: 'Original Quality, No Watermark.',
-    heroSub: 'Save Instagram Reels, video posts, and IGTV clips in original crisp 1080p MP4. Quick, free, and works on all desktop and mobile devices.',
+    heroHeadline: 'Inspect Instagram Video Links.',
+    heroHighlight: 'Check Public Source Availability.',
+    heroSub: 'Inspect publicly accessible Instagram Reel and video links. Private or login-restricted content is not supported.',
     placeholder: 'Paste Instagram Reel or Video URL (e.g. https://www.instagram.com/reel/…)',
     sampleUrl: 'https://www.instagram.com/reel/C_xyz123/',
     color: '#e1306c',
@@ -107,17 +107,17 @@ export const PLATFORMS: Record<string, PlatformConfig> = {
     howToSteps: [
       { step: '01', title: 'Copy Instagram Link', description: 'Tap the three dots or Share icon on the Instagram post and choose "Copy Link".' },
       { step: '02', title: 'Paste in Clipora', description: 'Paste the copied Instagram link into the top input bar.' },
-      { step: '03', title: 'Analyze & Select', description: 'Clipora fetches the high-definition MP4 stream automatically.' },
-      { step: '04', title: 'Save to Gallery', description: 'Download the Reel directly to your Photos or Downloads folder.' }
+      { step: '03', title: 'Review Available Formats', description: 'Check the metadata and formats exposed by the source.' },
+      { step: '04', title: 'Download If Available', description: 'Start a download when the source provides a supported format.' }
     ],
     features: [
-      { title: 'Instagram Reels in HD', description: 'Save trending Reels in full 1080x1920 vertical format with crystal clear sound.', icon: 'film' },
-      { title: 'Audio Preservation', description: 'Includes original background music and voice tracks in high quality.', icon: 'music' },
-      { title: 'No Account Required', description: 'Download public Instagram media without logging into your personal Instagram account.', icon: 'shield' },
-      { title: 'iPhone & Android Ready', description: 'Smooth download directly into iOS Photos or Android gallery without third-party apps.', icon: 'sparkles' }
+      { title: 'Source-Available Video', description: 'Video details and resolution depend on the media available from the source.', icon: 'film' },
+      { title: 'Available Audio', description: 'Audio options depend on the formats exposed by the source.', icon: 'music' },
+      { title: 'Public Links Only', description: 'Private or login-restricted Instagram content is not supported.', icon: 'shield' },
+      { title: 'Browser-Based', description: 'Use a current desktop or mobile browser to inspect public links.', icon: 'sparkles' }
     ],
     faqs: [
-      { question: 'Can I download Instagram Reels without a watermark?', answer: 'Yes! Instagram videos downloaded via Clipora do not have any added stamps or watermarks.' },
+      { question: 'Does Clipora remove Instagram watermarks?', answer: 'No. Clipora does not promise to remove watermarks; downloaded media may contain the source watermark.' },
       { question: 'Do I need to log into Instagram?', answer: 'No, you never have to log in or share your Instagram credentials.' },
       { question: 'Can I download private Instagram accounts?', answer: 'Clipora only supports public posts and Reels that can be viewed without logging into a restricted account.' },
       { question: 'Where are Instagram videos saved on my phone?', answer: 'On iOS, they save to Files or Safari Downloads (and can be saved to Camera Roll). On Android, they go straight to your Downloads/Gallery.' }
@@ -128,13 +128,13 @@ export const PLATFORMS: Record<string, PlatformConfig> = {
     id: 'tiktok',
     name: 'TikTok',
     path: '/tiktok-video-downloader',
-    badge: 'TikTok Downloader (No Watermark)',
-    title: 'TikTok Video Downloader Without Watermark — Free HD MP4 & MP3 | Clipora',
-    metaDescription: 'Download TikTok videos without watermark in HD MP4 quality. Fast, free online TikTok downloader for mobile and desktop. Convert TikTok to MP3 easily.',
-    keywords: 'tiktok video downloader, download tiktok without watermark, tiktok no watermark, save tiktok video, tiktok to mp4, tiktok mp3 download',
-    heroHeadline: 'Download TikTok Videos.',
-    heroHighlight: '100% Without Watermark.',
-    heroSub: 'Save your favorite TikTok videos in clean Full HD MP4 without the floating TikTok logo or username stamp. Free and lightning fast.',
+    badge: 'TikTok Video Link Inspector',
+    title: 'TikTok Video Link Inspector — Available Media Formats | Clipora',
+    metaDescription: 'Inspect publicly accessible TikTok video links. Available formats and quality depend on the source; watermark behavior is not guaranteed.',
+    keywords: 'tiktok video link inspector, inspect TikTok video, TikTok media formats',
+    heroHeadline: 'Inspect TikTok Video Links.',
+    heroHighlight: 'Review Source-Available Formats.',
+    heroSub: 'Inspect publicly accessible TikTok video links. Available formats and watermark behavior depend on the source.',
     placeholder: 'Paste TikTok video link (e.g. https://www.tiktok.com/@user/video/…)',
     sampleUrl: 'https://www.tiktok.com/@creator/video/1234567890',
     color: '#00f2fe',
@@ -142,20 +142,20 @@ export const PLATFORMS: Record<string, PlatformConfig> = {
     howToSteps: [
       { step: '01', title: 'Copy TikTok Link', description: 'In the TikTok app, tap Share and select "Copy Link".' },
       { step: '02', title: 'Paste Above', description: 'Paste the link into Clipora’s top search bar.' },
-      { step: '03', title: 'Select Format', description: 'Choose clean MP4 video (without watermark) or extract MP3 audio.' },
-      { step: '04', title: 'Download Video', description: 'Save your watermark-free TikTok file in seconds.' }
+      { step: '03', title: 'Review Available Formats', description: 'Check the formats and qualities provided by the source.' },
+      { step: '04', title: 'Download If Available', description: 'Start a download when the source provides a supported format.' }
     ],
     features: [
-      { title: 'No Watermark Guaranteed', description: 'Removes the bouncing TikTok logo and creator handle overlay cleanly.', icon: 'sparkles' },
-      { title: 'Full HD Quality', description: 'Downloads in the maximum resolution the creator uploaded (1080p/720p).', icon: 'film' },
-      { title: 'Extract TikTok Sounds', description: 'Save viral TikTok sounds, audio trends, and songs as standalone MP3 files.', icon: 'music' },
-      { title: 'Unlimited Downloads', description: 'No daily download caps or restrictive limits—download as many as you need.', icon: 'globe' }
+      { title: 'Source-Dependent Watermarks', description: 'Watermarks in the original media are not removed or guaranteed to be absent.', icon: 'sparkles' },
+      { title: 'Available Video Quality', description: 'Resolution depends on the formats exposed by the source.', icon: 'film' },
+      { title: 'Audio Options', description: 'Audio formats are shown when available for the inspected source.', icon: 'music' },
+      { title: 'Public Links Only', description: 'Private, login-restricted, or otherwise inaccessible content is not supported.', icon: 'globe' }
     ],
     faqs: [
-      { question: 'Does this remove the TikTok watermark?', answer: 'Yes! Clipora extracts the clean, watermark-free source video stream directly.' },
+      { question: 'Does this remove the TikTok watermark?', answer: 'No. Clipora does not promise to remove watermarks; downloaded media may contain the source watermark.' },
       { question: 'Can I download TikTok sounds or songs?', answer: 'Yes, select the Audio MP3 option after pasting your TikTok link to extract just the audio track.' },
       { question: 'Does it work for TikTok photo slide shows?', answer: 'If the post contains video or rendered slides, Clipora will fetch the video format.' },
-      { question: 'Is TikTok downloader free?', answer: 'Yes, 100% free with no subscription or payment needed.' }
+      { question: 'Can every TikTok link be processed?', answer: 'No. A link must be publicly accessible and provide a format supported by the source and current service configuration.' }
     ]
   },
 
@@ -165,7 +165,7 @@ export const PLATFORMS: Record<string, PlatformConfig> = {
     path: '/twitter-video-downloader',
     badge: 'Twitter / X Video Downloader',
     title: 'Twitter Video Downloader — Download X Videos & GIFs in HD MP4 | Clipora',
-    metaDescription: 'Download Twitter (X) videos and GIFs online in high quality MP4. Fast, free X video downloader compatible with iPhone, Android, PC, and Mac.',
+    metaDescription: 'Inspect publicly accessible X and Twitter video links. Available metadata and formats depend on source availability and access requirements.',
     keywords: 'twitter video downloader, x video downloader, download twitter videos, save x video, twitter to mp4, download twitter gif',
     heroHeadline: 'Download Twitter & X Videos.',
     heroHighlight: 'In Crisp HD MP4 Format.',
@@ -200,7 +200,7 @@ export const PLATFORMS: Record<string, PlatformConfig> = {
     path: '/facebook-video-downloader',
     badge: 'Facebook Video & Reels Downloader',
     title: 'Facebook Video Downloader — Download FB Reels & Videos in HD | Clipora',
-    metaDescription: 'Free Facebook video downloader online. Save Facebook Reels, Watch videos, and public clips in 1080p Full HD MP4 quality. Fast and easy.',
+    metaDescription: 'Inspect publicly accessible Facebook video and Reel links. Available metadata and formats depend on source availability and access requirements.',
     keywords: 'facebook video downloader, fb video download, download facebook reels, facebook watch downloader, fb to mp4, save facebook video',
     heroHeadline: 'Download Facebook Videos & Reels.',
     heroHighlight: 'In High Definition 1080p.',
@@ -235,7 +235,7 @@ export const PLATFORMS: Record<string, PlatformConfig> = {
     path: '/reddit-video-downloader',
     badge: 'Reddit Video Downloader with Audio',
     title: 'Reddit Video Downloader with Sound — Save Reddit Videos in HD MP4 | Clipora',
-    metaDescription: 'Download Reddit videos with sound online. Save v.redd.it videos and Reddit posts in HD MP4 with merged audio. Free and unlimited.',
+    metaDescription: 'Inspect publicly accessible Reddit and v.redd.it video links. Audio, video, and available formats depend on the source.',
     keywords: 'reddit video downloader, download reddit video with sound, reddit to mp4, v.redd.it downloader, save reddit video with audio, reddit downloader',
     heroHeadline: 'Download Reddit Videos with Sound.',
     heroHighlight: 'Merged HD MP4 with Audio.',
@@ -270,7 +270,7 @@ export const PLATFORMS: Record<string, PlatformConfig> = {
     path: '/vimeo-video-downloader',
     badge: 'Vimeo Video Downloader Full HD',
     title: 'Vimeo Video Downloader — Download Vimeo Videos in 1080p & 4K | Clipora',
-    metaDescription: 'Free online Vimeo video downloader. Download Vimeo videos in 4K, 1080p, 720p MP4 format. Fast, high-quality, and completely free.',
+    metaDescription: 'Inspect publicly accessible Vimeo video links. Available resolutions and formats depend on the source and its access settings.',
     keywords: 'vimeo video downloader, download vimeo video, vimeo to mp4, vimeo 1080p download, save vimeo video, online vimeo downloader',
     heroHeadline: 'Download Vimeo Videos in High Def.',
     heroHighlight: '4K & 1080p Studio Quality.',
@@ -305,7 +305,7 @@ export const PLATFORMS: Record<string, PlatformConfig> = {
     path: '/twitch-clip-downloader',
     badge: 'Twitch Clip & VOD Downloader',
     title: 'Twitch Clip Downloader — Save Twitch Clips & Highlights in 1080p 60fps | Clipora',
-    metaDescription: 'Download Twitch clips and stream highlights in 1080p 60fps MP4. Free online Twitch clip downloader with fast speeds and no software required.',
+    metaDescription: 'Inspect publicly accessible Twitch clips and video links. Available resolution and formats depend on the source.',
     keywords: 'twitch clip downloader, download twitch clips, save twitch vod, twitch to mp4, twitch 60fps download, twitch highlight downloader',
     heroHeadline: 'Download Twitch Clips & Highlights.',
     heroHighlight: 'In 1080p 60FPS Smooth Quality.',
@@ -340,7 +340,7 @@ export const PLATFORMS: Record<string, PlatformConfig> = {
     path: '/pinterest-video-downloader',
     badge: 'Pinterest Video & Pin Downloader',
     title: 'Pinterest Video Downloader — Download Pins & Videos in HD MP4 | Clipora',
-    metaDescription: 'Free online Pinterest video downloader. Save Pinterest videos, ideas, and Pins in HD MP4 with audio. Easy to use on iPhone, Android, and PC.',
+    metaDescription: 'Inspect publicly accessible Pinterest video Pins. Available metadata and formats depend on the source and current access.',
     keywords: 'pinterest video downloader, download pinterest video, save pinterest pin, pinterest to mp4, download pinterest gif, pin video download',
     heroHeadline: 'Download Pinterest Videos & Pins.',
     heroHighlight: 'In HD MP4 with Sound.',
@@ -374,12 +374,12 @@ export const PLATFORMS: Record<string, PlatformConfig> = {
     name: 'Threads',
     path: '/threads-video-downloader',
     badge: 'Threads Video Downloader',
-    title: 'Threads Video Downloader — Save Threads Videos in HD MP4 | Clipora',
-    metaDescription: 'Download videos from Threads online in Full HD MP4 quality. Fast, free Threads video downloader for iPhone, Android, and desktop.',
+    title: 'Threads Video Link Inspector — Available Media Formats | Clipora',
+    metaDescription: 'Inspect publicly accessible Threads video links. Available metadata and formats depend on the source and its access settings.',
     keywords: 'threads video downloader, download threads video, save threads post, threads to mp4, meta threads downloader',
-    heroHeadline: 'Download Threads Videos in HD.',
-    heroHighlight: 'Original Quality, Fast & Free.',
-    heroSub: 'Save videos from Meta Threads posts directly in crisp MP4 format. No login required, watermark-free, and works on all devices.',
+    heroHeadline: 'Inspect Threads Video Links.',
+    heroHighlight: 'Review Source-Available Formats.',
+    heroSub: 'Inspect publicly accessible Threads video links. Private or login-restricted content is not supported, and available formats vary.',
     placeholder: 'Paste Threads video link (e.g. https://www.threads.net/@user/post/…)',
     sampleUrl: 'https://www.threads.net/@user/post/123456789',
     color: '#ffffff',
@@ -387,20 +387,20 @@ export const PLATFORMS: Record<string, PlatformConfig> = {
     howToSteps: [
       { step: '01', title: 'Copy Threads Link', description: 'In the Threads app, tap the Share icon on the post and choose "Copy Link".' },
       { step: '02', title: 'Paste Above', description: 'Paste the link into Clipora\'s top search box.' },
-      { step: '03', title: 'Choose MP4 Quality', description: 'Select high-definition video format.' },
-      { step: '04', title: 'Download File', description: 'Save the Threads video directly to your device.' }
+      { step: '03', title: 'Review Available Formats', description: 'Check the formats and qualities provided by the source.' },
+      { step: '04', title: 'Download If Available', description: 'Start a download when the source provides a supported format.' }
     ],
     features: [
-      { title: 'HD Threads Video', description: 'Download in the highest bitrate uploaded to Meta Threads.', icon: 'film' },
-      { title: 'No Account Needed', description: 'Download public Threads videos without logging in or connecting your account.', icon: 'shield' },
-      { title: 'Clean MP4 Format', description: 'No extra watermarks or compression artifacts added.', icon: 'sparkles' },
-      { title: 'Instant Mobile Downloads', description: 'Works smoothly on mobile Safari and Chrome on iOS and Android.', icon: 'globe' }
+      { title: 'Source-Available Video', description: 'Video details and resolution depend on formats exposed by the source.', icon: 'film' },
+      { title: 'Public Links Only', description: 'Private or login-restricted posts are not supported.', icon: 'shield' },
+      { title: 'Source-Provided Media', description: 'The service does not remove watermarks or guarantee an uncompressed original.', icon: 'sparkles' },
+      { title: 'Browser-Based', description: 'Use a current desktop or mobile browser to inspect public links.', icon: 'globe' }
     ],
     faqs: [
       { question: 'Can I download Threads videos on my iPhone or Android?', answer: 'Yes! Just copy the post link in the Threads app and paste it into Clipora in your mobile browser.' },
-      { question: 'Do I need an Instagram or Threads account?', answer: 'No account is needed. Public Threads posts can be downloaded instantly.' },
-      { question: 'Are downloaded Threads videos watermarked?', answer: 'No, Clipora delivers clean, original-quality MP4 video without watermarks.' },
-      { question: 'Is this Threads downloader free?', answer: 'Yes, 100% free with unlimited downloads.' }
+      { question: 'Do I need an Instagram or Threads account?', answer: 'Clipora does not request your account credentials. Only links accessible to the service can be inspected.' },
+      { question: 'Are downloaded Threads videos watermarked?', answer: 'Watermarks and quality depend on the media provided by the source; Clipora does not remove them.' },
+      { question: 'Can every Threads video be processed?', answer: 'No. The post must be publicly accessible and expose a format supported by the source and current service configuration.' }
     ]
   }
 };

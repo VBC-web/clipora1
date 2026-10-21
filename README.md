@@ -21,6 +21,8 @@ npm test
 npm run build
 ```
 
+For production frontend builds, set `VITE_SITE_URL` to the canonical HTTPS origin before running `npm run build`. The build prerenders each public route and generates the sitemap and `robots.txt` using that origin. Without it, canonical URLs use localhost and sitemap generation is skipped.
+
 ## Environment
 See `backend/.env.example`. `FRONTEND_ORIGIN` should be the exact production frontend origin. Keep API secrets server-side. Uploads and output files are temporary and removed by cleanup; this starter does not use a database or accounts. Job IDs are unguessable random identifiers, but this is not a substitute for authenticated ownership in a public multi-user deployment.
 

@@ -1,1 +1,1 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/platforms.ts","./src/vite-env.d.ts","./src/components/onlinevideoplayer.tsx","./src/components/seohead.tsx","./src/pages/downloaderpage.tsx"],"version":"5.7.3"}
+{"root":["./src/app.tsx","./src/main.tsx","./src/platforms.ts","./src/seo.ts","./src/vite-env.d.ts","./src/components/onlinevideoplayer.tsx","./src/components/seohead.tsx","./src/pages/downloaderpage.tsx"],"version":"5.7.3"}

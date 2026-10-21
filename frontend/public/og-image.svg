@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
+  <title id="title">Clipora video utility</title>
+  <desc id="description">Inspect publicly accessible video links and review source-dependent media options.</desc>
+  <defs>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#a78bfa" />
+      <stop offset="1" stop-color="#38bdf8" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#0a0913" />
+  <rect x="72" y="72" width="1056" height="486" rx="28" fill="#12101e" stroke="#332d4b" stroke-width="2" />
+  <rect x="120" y="128" width="64" height="64" rx="18" fill="url(#accent)" />
+  <path d="M145 143v34l29-17z" fill="#0b0914" />
+  <text x="208" y="176" fill="#f4f3fb" font-family="Arial, sans-serif" font-size="42" font-weight="700">clipora</text>
+  <text x="120" y="306" fill="#f4f3fb" font-family="Arial, sans-serif" font-size="58" font-weight="700">Video utility</text>
+  <text x="120" y="378" fill="#c5c2d4" font-family="Arial, sans-serif" font-size="30">Inspect public links. Review available formats.</text>
+  <text x="120" y="438" fill="#9e9cb3" font-family="Arial, sans-serif" font-size="24">Availability depends on the source.</text>
+</svg>
