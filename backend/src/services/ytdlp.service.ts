@@ -11,9 +11,12 @@ export const downloadJobs = new Map<string, DownloadJob>();
 const EXTRA_BIN_DIR = 'C:\\ffmpeg-8.1.1-essentials_build\\bin';
 const PYTHON_SCRIPTS = 'C:\\Users\\thehu\\AppData\Local\\Python\\pythoncore-3.14-64\\Scripts';
 const NODE_BIN = 'C:\\Program Files\\nodejs';
+const platformToolDirs = process.platform === 'win32'
+  ? [EXTRA_BIN_DIR, PYTHON_SCRIPTS, NODE_BIN]
+  : [];
 const CHILD_ENV = {
   ...process.env,
-  PATH: `${EXTRA_BIN_DIR};${PYTHON_SCRIPTS};${NODE_BIN};${process.env.PATH || ''}`
+  PATH: [...platformToolDirs, process.env.PATH || ''].filter(Boolean).join(path.delimiter)
 };
 
 function formatTime(seconds?: number): string {

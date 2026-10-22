@@ -29,6 +29,8 @@ See `backend/.env.example`. `FRONTEND_ORIGIN` should be the exact production fro
 ## Deploying
 Build the frontend with `npm run build -w frontend` and publish `frontend/dist` as static files. Deploy `backend` to a Node.js runtime with FFmpeg/FFprobe installed, writable temporary storage, sufficient disk/RAM, and persistent process support. Set `VITE_API_BASE_URL` at frontend build time to the HTTPS backend origin (without trailing slash), and set `FRONTEND_ORIGIN` on the backend. Configure HTTPS and restrictive CORS at the host/reverse proxy. Run `npm install --omit=dev` and `npm run start -w backend` for the backend after building it (`npm run build -w backend`). Do not assume a Hostinger plan supports Node.js apps, FFmpeg binaries, or long-running jobs; verify those capabilities in hPanel. If unavailable, use Hostinger for static frontend hosting and a separate Node-capable host for the API.
 
+The root `render.yaml` deploys the Astro frontend as a static site and the API as a Docker web service from the `main` branch. The Docker image installs FFmpeg and yt-dlp. Update the two `*.onrender.com` origins in `render.yaml` if you rename either Render service or use a custom domain. The static site's build creates `robots.txt` and `sitemap.xml`; no separate root-level robots file is required. The API uses temporary container storage, so generated files are removed when their jobs expire and may also be lost if the service restarts.
+
 ## Current provider support
 - Upload: media inspection and FFmpeg trimming are implemented.
 - Direct video URL: recognized; safe remote metadata inspection is limited and no remote URL is sent to FFmpeg. Remote trimming/download requires a dedicated approved source integration.

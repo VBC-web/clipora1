@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: clipora
+    runtime: static
+    plan: free
+    branch: main
+    buildCommand: npm ci && npm run build -w frontend
+    staticPublishPath: frontend/dist
+    envVars:
+      - key: VITE_SITE_URL
+        value: https://clipora.onrender.com
+      - key: VITE_API_BASE_URL
+        value: https://clipora-api.onrender.com
+
+  - type: web
+    name: clipora-api
+    runtime: docker
+    plan: starter
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: FRONTEND_ORIGIN
+        value: https://clipora.onrender.com
+      - key: JOB_RETENTION_MINUTES
+        value: "60"
+      - key: MAX_CONCURRENT_JOBS
+        value: "2"
