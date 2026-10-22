@@ -1,6 +1,6 @@
 # Clipora
 
-Clipora is a responsive video utility with a React/Vite frontend and Express/FFmpeg backend. It supports metadata inspection and trimming for user-uploaded videos. Remote social-platform links are identified honestly; provider-specific downloading is not enabled by default. Direct remote media inspection is guarded by URL/IP checks, and remote trimming is intentionally not enabled until a source-specific, permitted integration is configured.
+Clipora is a responsive video utility with an Astro frontend, a hydrated React downloader, and an Express/FFmpeg backend. It supports metadata inspection and trimming for user-uploaded videos. Remote social-platform links are identified honestly; provider-specific downloading is not enabled by default. Direct remote media inspection is guarded by URL/IP checks, and remote trimming is intentionally not enabled until a source-specific, permitted integration is configured.
 
 ## Requirements
 - Node.js 20+ (tested with Node 22)
@@ -13,7 +13,7 @@ cp backend/.env.example backend/.env
 npm install
 npm run dev
 ```
-Frontend: http://localhost:5173. API: http://localhost:4000/api/health.
+Frontend: http://localhost:4321. API: http://localhost:4000/api/health.
 
 ## Checks
 ```bash
@@ -21,7 +21,7 @@ npm test
 npm run build
 ```
 
-For production frontend builds, set `VITE_SITE_URL` to the canonical HTTPS origin before running `npm run build`. The build prerenders each public route and generates the sitemap and `robots.txt` using that origin. Without it, canonical URLs use localhost and sitemap generation is skipped.
+For production frontend builds, set `VITE_SITE_URL` to the canonical HTTPS origin before running `npm run build`. Astro prerenders each public route and generates the sitemap and `robots.txt` using that origin. Without it, canonical URLs use localhost and sitemap generation is skipped.
 
 ## Environment
 See `backend/.env.example`. `FRONTEND_ORIGIN` should be the exact production frontend origin. Keep API secrets server-side. Uploads and output files are temporary and removed by cleanup; this starter does not use a database or accounts. Job IDs are unguessable random identifiers, but this is not a substitute for authenticated ownership in a public multi-user deployment.
@@ -37,4 +37,4 @@ Build the frontend with `npm run build -w frontend` and publish `frontend/dist` 
 This project does not bypass DRM, authentication, privacy settings, or access controls. Only process content you own or are authorized to use.
 
 ## Before public launch
-Replace the example sitemap URL and configure a canonical URL for your real domain. Review and publish privacy, terms, copyright/acceptable-use, and contact information for your actual operation; the frontend includes initial explanatory notices but is not a substitute for reviewed legal pages. Configure authenticated job ownership if multiple users will share a public API, and consider object storage/queue infrastructure for sustained production workloads. SSRF controls validate DNS results and every redirect before HEAD inspection, but high-risk deployments should additionally pin outbound connections to validated IP addresses to fully mitigate DNS rebinding.
+Replace the example sitemap URL and configure a canonical URL for your real domain. The included privacy, terms, and fair-use pages are starter drafts; have them reviewed for your actual operator, jurisdiction, retention configuration, and contact details before public launch. Configure authenticated job ownership if multiple users will share a public API, and consider object storage/queue infrastructure for sustained production workloads. SSRF controls validate DNS results and every redirect before HEAD inspection, but high-risk deployments should additionally pin outbound connections to validated IP addresses to fully mitigate DNS rebinding.

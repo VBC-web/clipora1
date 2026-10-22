@@ -1,0 +1,46 @@
+---
+import LegalLayout from '../layouts/LegalLayout.astro';
+
+const title = 'Terms of Service for Clipora Video Tools';
+const description = 'Review Clipora’s terms for video link inspection, downloads, temporary processing, acceptable use, third-party platforms, and service limitations.';
+---
+
+<LegalLayout title={title} description={description}>
+  <article class="policy-article">
+    <p class="policy-eyebrow">LEGAL & SAFETY</p>
+    <h1>Terms of Service</h1>
+    <p class="policy-lede">These terms apply when you access Clipora’s video link inspection and media processing tools. By using the service, you agree to use it lawfully and to respect the rights of creators and media platforms.</p>
+
+    <section>
+      <h2>What Clipora provides</h2>
+      <p>Clipora provides a browser interface and server-side tools that may inspect a media link, display source-provided information, and process formats made available by the source. Results, captions, resolutions, and download support vary by link and may change over time. The service does not promise that every link can be processed.</p>
+    </section>
+
+    <section>
+      <h2>Your responsibilities</h2>
+      <p>You must have the rights and permissions required to submit, access, download, and use any content you provide. You agree not to use Clipora to infringe intellectual property or privacy rights, violate platform terms, distribute unlawful content, or bypass DRM, authentication, paywalls, privacy settings, or other access restrictions.</p>
+      <p>You are responsible for safeguarding any files you download and for ensuring that your use complies with the laws and agreements that apply to you.</p>
+    </section>
+
+    <section>
+      <h2>Third-party platforms and content</h2>
+      <p>Media links are hosted and controlled by third parties. Clipora does not own or control that content and is not affiliated with or endorsed by the platforms it may recognize. A link working in Clipora does not grant a license to use the linked material.</p>
+    </section>
+
+    <section>
+      <h2>Temporary processing and availability</h2>
+      <p>Download jobs and generated files are temporary. The default retention period is 60 minutes, after which cleanup runs periodically; deployments may configure a different period. Failed jobs and their output files may be removed earlier. Do not use the service as long-term storage.</p>
+      <p>Clipora is provided on an availability-dependent basis. Features may be changed, limited, interrupted, or discontinued. To the extent permitted by applicable law, the service is provided without guarantees that it will be uninterrupted, error-free, or suitable for a particular purpose.</p>
+    </section>
+
+    <section>
+      <h2>Limitation of liability</h2>
+      <p>To the extent permitted by law, the service operator is not responsible for indirect or consequential losses arising from your use of Clipora, unavailable source content, service interruption, or files you choose to download. Nothing in these terms excludes rights or liability that cannot legally be excluded.</p>
+    </section>
+
+    <section>
+      <h2>Changes and contact details</h2>
+      <p>These terms may be updated when the service changes or legal requirements evolve. The operator should publish its legal name, contact address, and any required jurisdiction-specific terms before making Clipora publicly available.</p>
+    </section>
+  </article>
+</LegalLayout>

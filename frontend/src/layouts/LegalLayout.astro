@@ -1,0 +1,64 @@
+---
+import '../styles.css';
+import { ThemeToggle } from '../components/ThemeToggle';
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+const siteOrigin = import.meta.env.VITE_SITE_URL?.trim().replace(/\/$/, '');
+const canonicalUrl = siteOrigin ? new URL(Astro.url.pathname, `${siteOrigin}/`).toString() : undefined;
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: title,
+  description,
+  ...(canonicalUrl ? { url: canonicalUrl } : {})
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a0913" />
+    <meta name="robots" content="index, follow" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+    <script type="application/ld+json" set:html={JSON.stringify(structuredData).replace(/</g, '\\u003c')} />
+  </head>
+  <body>
+    <header class="topbar legal-topbar">
+      <div class="nav-wrap">
+        <a href="/" class="brand" aria-label="Clipora Home">
+          <span class="brand-mark">▶</span>
+          <span>clipora<span class="brand-dot">.</span></span>
+        </a>
+        <nav class="legal-nav" aria-label="Legal pages">
+          <a href="/fair-use">Fair Use</a>
+          <a href="/terms-of-service">Terms</a>
+          <a href="/privacy-policy">Privacy</a>
+        </nav>
+        <ThemeToggle client:load />
+      </div>
+    </header>
+    <main class="policy-main section-wrap">
+      <a class="policy-back-link" href="/">Clipora home</a>
+      <slot />
+    </main>
+    <footer class="policy-footer">
+      <a href="/">Clipora</a>
+      <span>Use media only when you have the right to do so.</span>
+    </footer>
+  </body>
+</html>

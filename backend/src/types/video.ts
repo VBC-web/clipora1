@@ -27,6 +27,8 @@ export interface VideoMetadata {
   uploader?: string;
   channel?: string;
   publishedAt?: string;
+  captions?: string;
+  captionLanguage?: string;
   formats: VideoFormat[];
   audioFormats: VideoFormat[];
   capabilities: {

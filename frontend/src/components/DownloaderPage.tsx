@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
 import {
   ArrowDownToLine,
   Check,
   ChevronDown,
   ChevronUp,
+  Copy,
   ExternalLink,
   Film,
   Globe,
@@ -22,8 +22,8 @@ import {
   X,
   Zap
 } from 'lucide-react';
-import { SeoHead } from '../components/SeoHead';
 import { OnlineVideoPlayer } from '../components/OnlineVideoPlayer';
+import { ThemeToggle } from '../components/ThemeToggle';
 import { PLATFORM_LIST, type PlatformConfig } from '../platforms';
 
 const API = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000').replace(/\/$/, '');
@@ -54,6 +54,8 @@ interface VideoMetadata {
   uploader?: string;
   channel?: string;
   publishedAt?: string;
+  captions?: string;
+  captionLanguage?: string;
   formats: VideoFormat[];
   audioFormats: VideoFormat[];
   capabilities: {
@@ -93,6 +95,7 @@ export function DownloaderPage({ platform }: DownloaderPageProps) {
   const [faqOpen, setFaqOpen] = useState<number | null>(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [platformDropdown, setPlatformDropdown] = useState(false);
+  const [copiedText, setCopiedText] = useState<'description' | 'captions' | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Auto focus input when switching platforms
@@ -191,6 +194,16 @@ export function DownloaderPage({ platform }: DownloaderPageProps) {
     }
   }
 
+  async function copyMetadataText(text: string, type: 'description' | 'captions') {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedText(type);
+      window.setTimeout(() => setCopiedText(current => current === type ? null : current), 1800);
+    } catch {
+      setUrlError('Clipboard permission blocked. Please select and copy the text directly.');
+    }
+  }
+
   function handleClear() {
     setUrl('');
     setUrlError('');
@@ -259,24 +272,22 @@ export function DownloaderPage({ platform }: DownloaderPageProps) {
 
   return (
     <div className="app-shell">
-      <SeoHead config={platform} />
-
       {/* TOPBAR NAVIGATION */}
       <header className="topbar">
         <div className="nav-wrap">
-          <Link to="/" className="brand" aria-label="Clipora Home">
+          <a href="/" className="brand" aria-label="Clipora Home">
             <span className="brand-mark">
               <Play size={18} fill="currentColor" />
             </span>
             <span>clipora<span className="brand-dot">.</span></span>
-          </Link>
+          </a>
 
           <nav className={menuOpen ? 'nav-links open' : 'nav-links'} aria-label="Main Navigation">
-            <Link to="/" onClick={() => setMenuOpen(false)}>All Platforms</Link>
-            <Link to="/youtube-video-downloader" onClick={() => setMenuOpen(false)}>YouTube</Link>
-            <Link to="/instagram-video-downloader" onClick={() => setMenuOpen(false)}>Instagram</Link>
-            <Link to="/tiktok-video-downloader" onClick={() => setMenuOpen(false)}>TikTok</Link>
-            <Link to="/twitter-video-downloader" onClick={() => setMenuOpen(false)}>Twitter / X</Link>
+            <a href="/" onClick={() => setMenuOpen(false)}>All Platforms</a>
+            <a href="/youtube-video-downloader" onClick={() => setMenuOpen(false)}>YouTube</a>
+            <a href="/instagram-video-downloader" onClick={() => setMenuOpen(false)}>Instagram</a>
+            <a href="/tiktok-video-downloader" onClick={() => setMenuOpen(false)}>TikTok</a>
+            <a href="/twitter-video-downloader" onClick={() => setMenuOpen(false)}>Twitter / X</a>
 
             <div className="platform-nav-dropdown-wrap">
               <button
@@ -290,9 +301,9 @@ export function DownloaderPage({ platform }: DownloaderPageProps) {
               {platformDropdown && (
                 <div className="dropdown-menu">
                   {PLATFORM_LIST.map(p => (
-                    <Link
+                    <a
                       key={p.id}
-                      to={p.path}
+                      href={p.path}
                       className={p.id === platform.id ? 'active' : ''}
                       onClick={() => {
                         setPlatformDropdown(false);
@@ -300,23 +311,18 @@ export function DownloaderPage({ platform }: DownloaderPageProps) {
                       }}
                     >
                       <span>{p.name}</span>
-                    </Link>
+                    </a>
                   ))}
+                  <span className="dropdown-divider" />
+                  <a href="/fair-use" onClick={() => setPlatformDropdown(false)}>Fair Use & Disclaimer</a>
+                  <a href="/terms-of-service" onClick={() => setPlatformDropdown(false)}>Terms of Service</a>
+                  <a href="/privacy-policy" onClick={() => setPlatformDropdown(false)}>Privacy Policy</a>
                 </div>
               )}
             </div>
           </nav>
 
-          <button
-            type="button"
-            className="nav-cta"
-            onClick={() => {
-              inputRef.current?.focus();
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-          >
-            <ArrowDownToLine size={15} /> Paste Link
-          </button>
+          <ThemeToggle />
 
           <button
             type="button"
@@ -416,13 +422,13 @@ export function DownloaderPage({ platform }: DownloaderPageProps) {
               <span className="pills-label">Supported sites:</span>
               <div className="pills-scroll">
                 {PLATFORM_LIST.map(p => (
-                  <Link
+                  <a
                     key={p.id}
-                    to={p.path}
+                    href={p.path}
                     className={`platform-pill ${p.id === platform.id ? 'current' : ''}`}
                   >
                     <span>{p.name}</span>
-                  </Link>
+                  </a>
                 ))}
               </div>
             </div>
@@ -460,8 +466,29 @@ export function DownloaderPage({ platform }: DownloaderPageProps) {
                       <p className="media-author">By <strong>{metadata.uploader}</strong></p>
                     )}
                     {metadata.description && (
-                      <p className="media-desc">{metadata.description}</p>
+                      <div className="metadata-copy-section">
+                        <div className="metadata-copy-header">
+                          <h3>Description</h3>
+                          <button type="button" className="metadata-copy-btn" onClick={() => copyMetadataText(metadata.description!, 'description')}>
+                            {copiedText === 'description' ? <Check size={15} /> : <Copy size={15} />}
+                            {copiedText === 'description' ? 'Copied' : 'Copy description'}
+                          </button>
+                        </div>
+                        <p className="media-desc">{metadata.description}</p>
+                      </div>
                     )}
+                    <div className="metadata-copy-section">
+                      <div className="metadata-copy-header">
+                        <h3>{metadata.captionLanguage ? `${metadata.captionLanguage.toUpperCase()} captions` : 'Captions'}</h3>
+                        {metadata.captions && (
+                          <button type="button" className="metadata-copy-btn" onClick={() => copyMetadataText(metadata.captions!, 'captions')}>
+                            {copiedText === 'captions' ? <Check size={15} /> : <Copy size={15} />}
+                            {copiedText === 'captions' ? 'Copied' : 'Copy captions'}
+                          </button>
+                        )}
+                      </div>
+                      <p className="media-desc">{metadata.captions || 'Captions are not available for this video.'}</p>
+                    </div>
                   </div>
                 </div>
 
@@ -506,6 +533,9 @@ export function DownloaderPage({ platform }: DownloaderPageProps) {
                                 <span className="format-ext-pill">MP4</span>
                                 {fmt.filesizeFormatted && (
                                   <span className="format-size-text">{fmt.filesizeFormatted}</span>
+                                )}
+                                {fmt.formatNote && fmt.id !== 'best' && (
+                                  <span className="format-size-text">{fmt.formatNote}</span>
                                 )}
                               </div>
                             </div>
@@ -713,9 +743,9 @@ export function DownloaderPage({ platform }: DownloaderPageProps) {
 
           <div className="platforms-cards-grid">
             {PLATFORM_LIST.map(p => (
-              <Link
+              <a
                 key={p.id}
-                to={p.path}
+                href={p.path}
                 className={`platform-directory-card ${p.id === platform.id ? 'active-platform' : ''}`}
               >
                 <div className="platform-card-top">
@@ -724,7 +754,7 @@ export function DownloaderPage({ platform }: DownloaderPageProps) {
                 </div>
                 <h3>{p.name} Downloader</h3>
                 <p>{p.badge}</p>
-              </Link>
+              </a>
             ))}
           </div>
         </section>
@@ -767,12 +797,12 @@ export function DownloaderPage({ platform }: DownloaderPageProps) {
       <footer className="footer-full">
         <div className="section-wrap footer-inner">
           <div className="footer-col brand-col">
-            <Link to="/" className="brand">
+            <a href="/" className="brand">
               <span className="brand-mark">
                 <Play size={16} fill="currentColor" />
               </span>
               <span>clipora<span className="brand-dot">.</span></span>
-            </Link>
+            </a>
             <p className="footer-motto">
               The premier free online video downloader. Fast, reliable, and watermark-free video downloads for all platforms.
             </p>
@@ -781,31 +811,31 @@ export function DownloaderPage({ platform }: DownloaderPageProps) {
           <div className="footer-col">
             <h4>Supported Platforms</h4>
             <ul className="footer-links-list">
-              <li><Link to="/youtube-video-downloader">YouTube Downloader</Link></li>
-              <li><Link to="/instagram-video-downloader">Instagram Reels Downloader</Link></li>
-              <li><Link to="/tiktok-video-downloader">TikTok Without Watermark</Link></li>
-              <li><Link to="/twitter-video-downloader">Twitter / X Downloader</Link></li>
-              <li><Link to="/facebook-video-downloader">Facebook Video Downloader</Link></li>
+              <li><a href="/youtube-video-downloader">YouTube Downloader</a></li>
+              <li><a href="/instagram-video-downloader">Instagram Reels Downloader</a></li>
+              <li><a href="/tiktok-video-downloader">TikTok Without Watermark</a></li>
+              <li><a href="/twitter-video-downloader">Twitter / X Downloader</a></li>
+              <li><a href="/facebook-video-downloader">Facebook Video Downloader</a></li>
             </ul>
           </div>
 
           <div className="footer-col">
             <h4>More Downloaders</h4>
             <ul className="footer-links-list">
-              <li><Link to="/reddit-video-downloader">Reddit Video Downloader</Link></li>
-              <li><Link to="/vimeo-video-downloader">Vimeo Video Downloader</Link></li>
-              <li><Link to="/twitch-clip-downloader">Twitch Clip Downloader</Link></li>
-              <li><Link to="/pinterest-video-downloader">Pinterest Video Downloader</Link></li>
-              <li><Link to="/threads-video-downloader">Threads Video Downloader</Link></li>
+              <li><a href="/reddit-video-downloader">Reddit Video Downloader</a></li>
+              <li><a href="/vimeo-video-downloader">Vimeo Video Downloader</a></li>
+              <li><a href="/twitch-clip-downloader">Twitch Clip Downloader</a></li>
+              <li><a href="/pinterest-video-downloader">Pinterest Video Downloader</a></li>
+              <li><a href="/threads-video-downloader">Threads Video Downloader</a></li>
             </ul>
           </div>
 
           <div className="footer-col">
             <h4>Legal & Safety</h4>
             <ul className="footer-links-list">
-              <li><a href="#downloader-box" onClick={e => { e.preventDefault(); alert('Clipora does not store or host user videos. Only download media you have the right to access.'); }}>Fair Use & Disclaimer</a></li>
-              <li><a href="#downloader-box" onClick={e => { e.preventDefault(); alert('We respect creator intellectual property. Please adhere to applicable platform terms of service.'); }}>Terms of Service</a></li>
-              <li><a href="#downloader-box" onClick={e => { e.preventDefault(); alert('Privacy policy: Clipora does not log user accounts or keep downloaded files.'); }}>Privacy Policy</a></li>
+              <li><a href="/fair-use">Fair Use & Disclaimer</a></li>
+              <li><a href="/terms-of-service">Terms of Service</a></li>
+              <li><a href="/privacy-policy">Privacy Policy</a></li>
             </ul>
           </div>
         </div>

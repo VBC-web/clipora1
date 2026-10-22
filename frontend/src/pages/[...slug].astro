@@ -1,0 +1,24 @@
+---
+import { DownloaderPage } from '../components/DownloaderPage';
+import SiteLayout from '../layouts/SiteLayout.astro';
+import { PLATFORMS } from '../platforms';
+
+export function getStaticPaths() {
+  const routes = Object.values(PLATFORMS)
+    .filter(platform => platform.id !== 'home')
+    .map(config => ({ config, path: config.path }));
+
+  routes.push({ config: PLATFORMS.twitter, path: '/x-video-downloader' });
+
+  return routes.map(({ config, path }) => ({
+    params: { slug: path.slice(1) },
+    props: { config }
+  }));
+}
+
+const { config } = Astro.props;
+---
+
+<SiteLayout config={config}>
+  <DownloaderPage client:load platform={config} />
+</SiteLayout>

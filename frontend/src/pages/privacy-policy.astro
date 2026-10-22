@@ -1,0 +1,51 @@
+---
+import LegalLayout from '../layouts/LegalLayout.astro';
+
+const title = 'Clipora Privacy Policy | Video Links and Temporary Processing';
+const description = 'Learn how Clipora handles submitted video URLs, media metadata, captions, clipboard actions, saved theme preferences, and temporary download files.';
+---
+
+<LegalLayout title={title} description={description}>
+  <article class="policy-article">
+    <p class="policy-eyebrow">LEGAL & SAFETY</p>
+    <h1>Privacy Policy</h1>
+    <p class="policy-lede">This policy explains what information Clipora processes when you inspect a media link or use its browser controls. Clipora does not require an account or collect payment details.</p>
+
+    <section>
+      <h2>Information processed when you use Clipora</h2>
+      <ul>
+        <li><strong>Links you submit:</strong> the video URL is sent to the Clipora backend to request source metadata and, when requested, process a download.</li>
+        <li><strong>Media information:</strong> the service may receive a title, description, thumbnail, duration, format details, and available English captions from the source.</li>
+        <li><strong>Download job data:</strong> job status and generated files are held temporarily so the service can complete and deliver a requested file.</li>
+        <li><strong>Technical request data:</strong> the hosting provider may process network and diagnostic information, such as IP address, browser details, and request timestamps, as part of operating and securing the service.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>How information is used and shared</h2>
+      <p>Submitted links are processed by the backend and may be requested from the third-party website that hosts the media. Clipora uses the resulting information to display metadata, available formats, and any retrieved captions, and to fulfill a download request. The hosting provider and linked media platform process requests under their own terms and privacy practices.</p>
+      <p>Clipora does not sell personal information. Information may be disclosed where required by law or when necessary to protect the service, its users, or the rights of others.</p>
+    </section>
+
+    <section>
+      <h2>Retention and deletion</h2>
+      <p>Download job records and output files are temporary. The default retention period is 60 minutes, with cleanup running periodically; the operator may configure a different period. Failed jobs may be removed sooner. Caption files used during metadata inspection are temporary and removed after the request. Hosting-provider logs may follow separate retention schedules.</p>
+    </section>
+
+    <section>
+      <h2>Browser storage, clipboard, and fonts</h2>
+      <p>Your light or dark theme preference is stored in your browser’s local storage. When you choose Paste, Clipora asks the browser to read clipboard text; it does not read the clipboard automatically. When you choose a copy button, the selected description or caption text is written to the clipboard. These actions are controlled by your browser permissions.</p>
+      <p>The interface loads DM Sans and Space Grotesk fonts from Google Fonts. Your browser connects to Google’s font service to retrieve them, subject to Google’s applicable privacy terms.</p>
+    </section>
+
+    <section>
+      <h2>Security and your choices</h2>
+      <p>Do not submit sensitive or private URLs. Use media you are authorized to access, and avoid sharing generated files publicly unless you have the necessary rights. You can clear a link and its displayed results in the browser; this does not change any retention period already applied to a submitted download job.</p>
+    </section>
+
+    <section>
+      <h2>Policy updates and contact</h2>
+      <p>This policy may be updated as the service or its data practices change. Before public launch, the service operator should add a monitored privacy contact address and any disclosures required for the jurisdictions where Clipora is offered.</p>
+    </section>
+  </article>
+</LegalLayout>

@@ -39,51 +39,148 @@ function sanitizeFilename(name: string): string {
   return name.replace(/[\\/:*?"<>|]/g, '').trim().slice(0, 100) || 'video';
 }
 
+export function parseVttTranscript(vtt: string): string {
+  return vtt
+    .split(/\r?\n/)
+    .map(line => line.trim())
+    .filter(line => line && !line.startsWith('WEBVTT') && !line.startsWith('NOTE') && !/^\d+$/.test(line) && !line.includes('-->'))
+    .map(line => line
+      .replace(/<[^>]*>/g, '')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'"))
+    .join(' ');
+}
+
+export function buildVideoFormats(rawFormats: any[]): VideoFormat[] {
+  const availableHeights = Array.from(new Set(rawFormats
+    .filter(format => format.height && Number.isFinite(format.height) && format.height > 0 && format.vcodec !== 'none')
+    .map(format => Number(format.height))));
+  const requestedHeights = [1080, 720, 480];
+  const heights = Array.from(new Set([
+    ...availableHeights.filter(height => !requestedHeights.includes(height)),
+    ...requestedHeights
+  ])).sort((a, b) => b - a);
+  const maxSourceHeight = Math.max(...availableHeights, 0);
+  const heightLabels: Record<number, string> = {
+    2160: '4K Ultra HD (2160p)',
+    1440: '2K Quad HD (1440p)',
+    1080: 'Full HD (1080p)',
+    720: 'HD (720p)',
+    480: 'SD (480p)',
+    360: 'Medium (360p)',
+    240: 'Low (240p)'
+  };
+
+  const formats: VideoFormat[] = [{
+    id: 'best',
+    label: 'Best Available (MP4)',
+    resolution: 'Auto High Definition',
+    container: 'mp4',
+    formatNote: 'Original Best',
+    isAudio: false
+  }];
+
+  for (const height of heights) {
+    const match = rawFormats
+      .filter(format => format.height && format.height <= height && format.vcodec !== 'none')
+      .sort((a, b) => b.height - a.height || (b.filesize || b.filesize_approx || 0) - (a.filesize || a.filesize_approx || 0))[0];
+    const exactMatch = rawFormats
+      .filter(format => format.height && Math.abs(format.height - height) <= 20 && format.vcodec !== 'none')
+      .sort((a, b) => (b.filesize || b.filesize_approx || 0) - (a.filesize || a.filesize_approx || 0))[0];
+    const size = exactMatch?.filesize || exactMatch?.filesize_approx;
+
+    formats.push({
+      id: `video-${height}`,
+      label: heightLabels[height] || `${height}p`,
+      resolution: `Up to ${height}p`,
+      height,
+      container: 'mp4',
+      filesize: size,
+      filesizeFormatted: size ? formatBytes(size) : undefined,
+      formatNote: maxSourceHeight && maxSourceHeight < height && match
+        ? `Source maximum: ${match.height}p`
+        : 'Highest available quality up to this resolution',
+      isAudio: false
+    });
+  }
+
+  return formats;
+}
+
 export async function getYtDlpMetadata(url: string): Promise<VideoMetadata> {
   const provider = detectProvider(url);
+  const captionsDir = await fs.mkdtemp(path.join(config.storageDir, 'captions-'));
   const args = [
     '--no-update',
     '--no-playlist',
     '--no-warnings',
+    '--ignore-errors',
     '--skip-download',
+    '--write-subs',
+    '--write-auto-subs',
+    '--sub-langs', 'en',
+    '--sub-format', 'vtt/best',
+    '--output', path.join(captionsDir, '%(id)s.%(ext)s'),
     '--dump-single-json',
     '--extractor-args', 'youtube:player_client=android,web',
     url
   ];
 
-  const stdout = await new Promise<string>((resolve, reject) => {
-    const child = spawn('yt-dlp', args, {
-      env: CHILD_ENV,
-      shell: false,
-      stdio: ['ignore', 'pipe', 'pipe']
+  let stdout: string;
+  try {
+    stdout = await new Promise<string>((resolve, reject) => {
+      const child = spawn('yt-dlp', args, {
+        env: CHILD_ENV,
+        shell: false,
+        stdio: ['ignore', 'pipe', 'pipe']
+      });
+
+      let out = '';
+      let err = '';
+
+      const timeout = setTimeout(() => {
+        child.kill('SIGKILL');
+        reject(new Error('Extracting video metadata timed out. Please try again.'));
+      }, 45_000);
+
+      child.stdout.on('data', (d: Buffer) => { out += d.toString(); });
+      child.stderr.on('data', (d: Buffer) => { err += d.toString(); });
+
+      child.on('error', (e) => {
+        clearTimeout(timeout);
+        reject(new Error(`Failed to run yt-dlp: ${e.message}`));
+      });
+
+      child.on('close', (code) => {
+        clearTimeout(timeout);
+        if (out.trim()) {
+          resolve(out);
+        } else {
+          const errorMsg = err.split('\n').filter(Boolean).slice(-3).join(' ') || 'Could not fetch video details from this URL.';
+          reject(new Error(errorMsg));
+        }
+      });
     });
+  } catch (error) {
+    await fs.rm(captionsDir, { recursive: true, force: true });
+    throw error;
+  }
 
-    let out = '';
-    let err = '';
-
-    child.stdout.on('data', (d: Buffer) => { out += d.toString(); });
-    child.stderr.on('data', (d: Buffer) => { err += d.toString(); });
-
-    const timeout = setTimeout(() => {
-      child.kill('SIGKILL');
-      reject(new Error('Extracting video metadata timed out. Please try again.'));
-    }, 45_000);
-
-    child.on('error', (e) => {
-      clearTimeout(timeout);
-      reject(new Error(`Failed to run yt-dlp: ${e.message}`));
-    });
-
-    child.on('close', (code) => {
-      clearTimeout(timeout);
-      if (code === 0 && out.trim()) {
-        resolve(out);
-      } else {
-        const errorMsg = err.split('\n').filter(Boolean).slice(-3).join(' ') || 'Could not fetch video details from this URL.';
-        reject(new Error(errorMsg));
-      }
-    });
-  });
+  let captions: string | undefined;
+  try {
+    const captionFile = (await fs.readdir(captionsDir)).find(file => file.endsWith('.vtt'));
+    if (captionFile) {
+      const vtt = await fs.readFile(path.join(captionsDir, captionFile), 'utf8');
+      if (vtt.length <= 512_000) captions = parseVttTranscript(vtt);
+    }
+  } catch {
+    // Captions are optional and must not fail metadata inspection.
+  } finally {
+    await fs.rm(captionsDir, { recursive: true, force: true });
+  }
 
   let raw: any;
   try {
@@ -98,64 +195,7 @@ export async function getYtDlpMetadata(url: string): Promise<VideoMetadata> {
 
   // Extract formats
   const rawFormats: any[] = Array.isArray(raw.formats) ? raw.formats : [];
-  const videoFormats: VideoFormat[] = [];
-  const heightsSeen = new Set<number>();
-
-  const standardHeights = [2160, 1440, 1080, 720, 480, 360, 240];
-  const availableHeights = new Set<number>();
-
-  for (const f of rawFormats) {
-    if (f.height && Number.isFinite(f.height) && f.vcodec !== 'none') {
-      availableHeights.add(f.height);
-    }
-  }
-
-  // Always offer Best Quality at top
-  videoFormats.push({
-    id: 'best',
-    label: 'Best Available (MP4)',
-    resolution: 'Auto High Definition',
-    container: 'mp4',
-    formatNote: 'Original Best',
-    isAudio: false
-  });
-
-  const heightLabels: Record<number, string> = {
-    2160: '4K Ultra HD (2160p)',
-    1440: '2K Quad HD (1440p)',
-    1080: 'Full HD (1080p)',
-    720: 'HD (720p)',
-    480: 'SD (480p)',
-    360: 'Medium (360p)',
-    240: 'Low (240p)'
-  };
-
-  // Find corresponding format for available standard heights
-  for (const h of standardHeights) {
-    const hasHeight = Array.from(availableHeights).some(ah => Math.abs(ah - h) <= 10 || (h <= 1080 && ah >= h));
-    if (hasHeight && !heightSeen(h)) {
-      heightsSeen.add(h);
-      const match = rawFormats
-        .filter(f => f.height && Math.abs(f.height - h) <= 20)
-        .sort((a, b) => (b.filesize || b.filesize_approx || 0) - (a.filesize || a.filesize_approx || 0))[0];
-
-      const size = match?.filesize || match?.filesize_approx;
-      videoFormats.push({
-        id: `video-${h}`,
-        label: heightLabels[h] || `${h}p`,
-        resolution: `${h}p`,
-        height: h,
-        container: 'mp4',
-        filesize: size,
-        filesizeFormatted: size ? formatBytes(size) : undefined,
-        isAudio: false
-      });
-    }
-  }
-
-  function heightSeen(h: number): boolean {
-    return heightsSeen.has(h);
-  }
+  const videoFormats = buildVideoFormats(rawFormats);
 
   // Audio formats
   const audioFormats: VideoFormat[] = [
@@ -198,13 +238,15 @@ export async function getYtDlpMetadata(url: string): Promise<VideoMetadata> {
     embedUrl,
     streamUrl,
     title,
-    description: raw.description ? String(raw.description).slice(0, 300) : undefined,
+    description: raw.description ? String(raw.description) : undefined,
     thumbnail,
     duration,
     durationFormatted: formatTime(duration),
     uploader: raw.uploader || raw.channel || raw.creator || undefined,
     channel: raw.channel || raw.uploader || undefined,
     publishedAt: raw.upload_date || undefined,
+    captions: captions || undefined,
+    captionLanguage: captions ? 'en' : undefined,
     formats: videoFormats,
     audioFormats,
     capabilities: {

@@ -1,0 +1,50 @@
+---
+import '../styles.css';
+import type { PlatformConfig } from '../platforms';
+import { getSeoData } from '../seo';
+
+interface Props {
+  config: PlatformConfig;
+}
+
+const { config } = Astro.props;
+const siteOrigin = import.meta.env.VITE_SITE_URL?.trim().replace(/\/$/, '') || 'http://localhost:5173';
+const seo = getSeoData(config, siteOrigin);
+const structuredData = import.meta.env.VITE_SITE_URL
+  ? seo.structuredData
+  : {
+      ...seo.structuredData,
+      '@graph': seo.structuredData['@graph'].filter(item => ['FAQPage', 'HowTo'].includes(item['@type']))
+    };
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a0913" />
+    <meta name="robots" content="index, follow" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{seo.title}</title>
+    <meta name="description" content={seo.description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={seo.title} />
+    <meta property="og:description" content={seo.description} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={seo.title} />
+    <meta name="twitter:description" content={seo.description} />
+    {import.meta.env.VITE_SITE_URL && (
+      <>
+        <meta property="og:url" content={seo.canonicalUrl} />
+        <meta property="og:image" content={seo.ogImageUrl} />
+        <meta property="og:image:alt" content="Clipora video utility" />
+        <link rel="canonical" href={seo.canonicalUrl} />
+      </>
+    )}
+    <script type="application/ld+json" set:html={JSON.stringify(structuredData).replace(/</g, '\\u003c')} />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

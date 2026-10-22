@@ -1,0 +1,11 @@
+---
+import { DownloaderPage } from '../components/DownloaderPage';
+import SiteLayout from '../layouts/SiteLayout.astro';
+import { PLATFORMS } from '../platforms';
+
+const config = PLATFORMS.home;
+---
+
+<SiteLayout config={config}>
+  <DownloaderPage client:load platform={config} />
+</SiteLayout>
