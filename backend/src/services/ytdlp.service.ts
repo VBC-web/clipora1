@@ -1,7 +1,9 @@
 import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
+import { createWriteStream } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { ZipArchive } from 'archiver';
 import { config } from '../config/env.js';
 import { detectProvider } from '../utils/url-validation.js';
 import type { VideoMetadata, VideoFormat, DownloadJob } from '../types/video.js';
@@ -55,6 +57,246 @@ export function parseVttTranscript(vtt: string): string {
       .replace(/&quot;/g, '"')
       .replace(/&#39;/g, "'"))
     .join(' ');
+}
+
+export function parseEngagementCount(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0
+    ? value
+    : undefined;
+}
+
+export function parseTikTokCarouselUrls(output: string, limit = 20): string[] {
+  const urls = new Set<string>();
+  const allowedHosts = ['tiktokcdn.com', 'tiktokcdn-us.com', 'tiktokcdn-eu.com', 'tiktokv.com', 'byteoversea.com', 'ibytedtos.com', 'byteimg.com'];
+  for (const line of output.split(/\r?\n/)) {
+    const candidate = line.trim();
+    if (!candidate) continue;
+    try {
+      const url = new URL(candidate);
+      const allowedHost = allowedHosts.some(host => url.hostname === host || url.hostname.endsWith(`.${host}`));
+      if (url.protocol === 'https:' && !url.username && !url.password && allowedHost) urls.add(url.toString());
+    } catch {
+      continue;
+    }
+    if (urls.size >= limit) break;
+  }
+  return Array.from(urls);
+}
+
+async function getTikTokCarouselImages(url: string): Promise<{ url: string; index: number }[]> {
+  const command = process.platform === 'win32' ? 'python.exe' : 'gallery-dl';
+  const galleryArgs = [
+    '--get-urls',
+    '--no-download',
+    '--range', '1-20',
+    '--filesize-max', '10M',
+    '--option', 'tiktok.photos=true',
+    '--option', 'tiktok.videos=false',
+    '--option', 'tiktok.audio=false',
+    url
+  ];
+  const args = process.platform === 'win32' ? ['-m', 'gallery_dl', ...galleryArgs] : galleryArgs;
+
+  return new Promise(resolve => {
+    const child = spawn(command, args, {
+      env: CHILD_ENV,
+      shell: false,
+      stdio: ['ignore', 'pipe', 'ignore']
+    });
+    let output = '';
+    let settled = false;
+    const finish = (images: { url: string; index: number }[] = []) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      resolve(images);
+    };
+    const timeout = setTimeout(() => {
+      child.kill('SIGKILL');
+      finish();
+    }, 15_000);
+
+    child.stdout.on('data', (chunk: Buffer) => {
+      if (output.length < 64_000) output += chunk.toString();
+    });
+    child.once('error', () => finish());
+    child.once('close', code => {
+      finish(code === 0
+        ? parseTikTokCarouselUrls(output).map((imageUrl, index) => ({ url: imageUrl, index: index + 1 }))
+        : []);
+    });
+  });
+}
+
+export async function createCarouselArchive(
+  workDirectory: string,
+  imageFiles: string[],
+  archivePath: string
+): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    const output = createWriteStream(archivePath);
+    const archive = new ZipArchive({ store: true });
+    output.once('close', resolve);
+    output.once('error', reject);
+    archive.once('error', reject);
+    archive.pipe(output);
+    imageFiles.forEach((file, index) => {
+      archive.file(path.join(workDirectory, file), {
+        name: `image-${String(index + 1).padStart(2, '0')}${path.extname(file).toLowerCase()}`
+      });
+    });
+    void archive.finalize().catch(reject);
+  });
+}
+
+async function downloadTikTokCarousel(job: DownloadJob, url: string): Promise<void> {
+  let workDirectory: string | undefined;
+  try {
+    workDirectory = await fs.mkdtemp(path.join(config.storageDir, 'carousel-'));
+    job.workingDirectory = workDirectory;
+    const command = process.platform === 'win32' ? 'python.exe' : 'gallery-dl';
+    const galleryArgs = [
+      '--destination', workDirectory,
+      '--filename', 'image_{num}.{extension}',
+      '--no-skip',
+      '--no-part',
+      '--range', '1-20',
+      '--filesize-max', '10M',
+      '--option', 'tiktok.photos=true',
+      '--option', 'tiktok.videos=false',
+      '--option', 'tiktok.audio=false',
+      url
+    ];
+    const args = process.platform === 'win32' ? ['-m', 'gallery_dl', ...galleryArgs] : galleryArgs;
+    job.progress = 5;
+
+    const exitCode = await new Promise<number>((resolve, reject) => {
+      const child = spawn(command, args, {
+        env: CHILD_ENV,
+        shell: false,
+        stdio: ['ignore', 'ignore', 'pipe']
+      });
+      let errorOutput = '';
+      child.stderr.on('data', (chunk: Buffer) => {
+        if (errorOutput.length < 16_000) errorOutput += chunk.toString();
+      });
+      const timeout = setTimeout(() => {
+        child.kill('SIGKILL');
+        reject(new Error('Carousel extraction timed out. Try again later.'));
+      }, 120_000);
+      child.once('error', error => {
+        clearTimeout(timeout);
+        reject(new Error(`Could not start carousel extractor: ${error.message}`));
+      });
+      child.once('close', code => {
+        clearTimeout(timeout);
+        if (code === 0) resolve(code);
+        else reject(new Error(errorOutput.split('\n').filter(Boolean).slice(-3).join(' ') || 'Could not retrieve carousel images.'));
+      });
+    });
+    if (exitCode !== 0) throw new Error('Could not retrieve carousel images.');
+
+    const imageExtensions = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif']);
+    const imageFiles = (await fs.readdir(workDirectory))
+      .filter(file => imageExtensions.has(path.extname(file).toLowerCase()))
+      .sort((left, right) => left.localeCompare(right, undefined, { numeric: true }))
+      .slice(0, 20);
+    if (imageFiles.length === 0) throw new Error('No downloadable carousel images were found. The post may require access the service does not have.');
+
+    job.progress = 75;
+    job.status = 'processing';
+    const archivePath = path.join(workDirectory, `clipora-carousel-${job.id}.zip`);
+    await createCarouselArchive(workDirectory, imageFiles, archivePath);
+
+    const stat = await fs.stat(archivePath);
+    job.outputPath = archivePath;
+    job.filename = `${sanitizeFilename(job.title || 'tiktok-carousel')}.zip`;
+    job.filesize = stat.size;
+    job.filesizeFormatted = formatBytes(stat.size);
+    job.formatLabel = `ZIP (${imageFiles.length} images)`;
+    job.status = 'completed';
+    job.progress = 100;
+  } catch (error) {
+    job.status = 'failed';
+    job.error = error instanceof Error ? error.message : 'Could not create the carousel archive.';
+    if (workDirectory) await fs.rm(workDirectory, { recursive: true, force: true }).catch(() => {});
+    job.workingDirectory = undefined;
+  }
+}
+
+export function parseYtDlpOutput(output: string): Record<string, any> {
+  let raw: unknown;
+  try {
+    raw = JSON.parse(output);
+  } catch {
+    throw new Error('Received unexpected format from video inspector.');
+  }
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    throw new Error('The video source did not return metadata. It may be unavailable or blocking this request.');
+  }
+  return raw as Record<string, any>;
+}
+
+export function getExtractionErrorMessage(provider: string, stderr: string): string {
+  if (provider === 'tiktok' && /Unexpected response from webpage request|Unable to download webpage|curl: \(28\)|Connection timed out/i.test(stderr)) {
+    return 'TikTok did not return video details for this link. The post may be unavailable or restricted, or TikTok may be temporarily blocking requests. Check that it is public and try again later.';
+  }
+  return stderr.split('\n').filter(Boolean).slice(-3).join(' ') || 'Could not fetch video details from this URL.';
+}
+
+async function getEnglishCaptions(url: string): Promise<string | undefined> {
+  let captionsDir: string;
+  try {
+    captionsDir = await fs.mkdtemp(path.join(config.storageDir, 'captions-'));
+  } catch {
+    return undefined;
+  }
+
+  try {
+    await new Promise<void>(resolve => {
+      const child = spawn('yt-dlp', [
+        '--no-update',
+        '--no-playlist',
+        '--no-warnings',
+        '--ignore-errors',
+        '--skip-download',
+        '--write-subs',
+        '--write-auto-subs',
+        '--sub-langs', 'en',
+        '--sub-format', 'vtt/best',
+        '--output', path.join(captionsDir, '%(id)s.%(ext)s'),
+        url
+      ], {
+        env: CHILD_ENV,
+        shell: false,
+        stdio: ['ignore', 'ignore', 'ignore']
+      });
+
+      const timeout = setTimeout(() => {
+        child.kill('SIGKILL');
+        resolve();
+      }, 15_000);
+
+      child.once('error', () => {
+        clearTimeout(timeout);
+        resolve();
+      });
+      child.once('close', () => {
+        clearTimeout(timeout);
+        resolve();
+      });
+    });
+
+    const captionFile = (await fs.readdir(captionsDir)).find(file => file.endsWith('.vtt'));
+    if (!captionFile) return undefined;
+    const vtt = await fs.readFile(path.join(captionsDir, captionFile), 'utf8');
+    if (vtt.length > 512_000) return undefined;
+    return parseVttTranscript(vtt) || undefined;
+  } catch {
+    return undefined;
+  } finally {
+    await fs.rm(captionsDir, { recursive: true, force: true });
+  }
 }
 
 export function buildVideoFormats(rawFormats: any[]): VideoFormat[] {
@@ -115,18 +357,11 @@ export function buildVideoFormats(rawFormats: any[]): VideoFormat[] {
 
 export async function getYtDlpMetadata(url: string): Promise<VideoMetadata> {
   const provider = detectProvider(url);
-  const captionsDir = await fs.mkdtemp(path.join(config.storageDir, 'captions-'));
   const args = [
     '--no-update',
     '--no-playlist',
     '--no-warnings',
-    '--ignore-errors',
     '--skip-download',
-    '--write-subs',
-    '--write-auto-subs',
-    '--sub-langs', 'en',
-    '--sub-format', 'vtt/best',
-    '--output', path.join(captionsDir, '%(id)s.%(ext)s'),
     '--dump-single-json',
     '--extractor-args', 'youtube:player_client=android,web',
     url
@@ -159,38 +394,19 @@ export async function getYtDlpMetadata(url: string): Promise<VideoMetadata> {
 
       child.on('close', (code) => {
         clearTimeout(timeout);
-        if (out.trim()) {
+        if (code === 0 && out.trim()) {
           resolve(out);
         } else {
-          const errorMsg = err.split('\n').filter(Boolean).slice(-3).join(' ') || 'Could not fetch video details from this URL.';
-          reject(new Error(errorMsg));
+          reject(new Error(getExtractionErrorMessage(provider, err)));
         }
       });
     });
   } catch (error) {
-    await fs.rm(captionsDir, { recursive: true, force: true });
     throw error;
   }
 
-  let captions: string | undefined;
-  try {
-    const captionFile = (await fs.readdir(captionsDir)).find(file => file.endsWith('.vtt'));
-    if (captionFile) {
-      const vtt = await fs.readFile(path.join(captionsDir, captionFile), 'utf8');
-      if (vtt.length <= 512_000) captions = parseVttTranscript(vtt);
-    }
-  } catch {
-    // Captions are optional and must not fail metadata inspection.
-  } finally {
-    await fs.rm(captionsDir, { recursive: true, force: true });
-  }
-
-  let raw: any;
-  try {
-    raw = JSON.parse(stdout);
-  } catch {
-    throw new Error('Received unexpected format from video inspector.');
-  }
+  const raw = parseYtDlpOutput(stdout);
+  const captions = await getEnglishCaptions(url);
 
   const title = String(raw.title || 'Untitled Video');
   const duration = Number(raw.duration) || 0;
@@ -199,6 +415,10 @@ export async function getYtDlpMetadata(url: string): Promise<VideoMetadata> {
   // Extract formats
   const rawFormats: any[] = Array.isArray(raw.formats) ? raw.formats : [];
   const videoFormats = buildVideoFormats(rawFormats);
+  const hasVideoStream = rawFormats.some(format => format.vcodec !== 'none' && format.height);
+  const carouselImages = provider === 'tiktok' && !hasVideoStream
+    ? await getTikTokCarouselImages(url)
+    : [];
 
   // Audio formats
   const audioFormats: VideoFormat[] = [
@@ -248,6 +468,12 @@ export async function getYtDlpMetadata(url: string): Promise<VideoMetadata> {
     uploader: raw.uploader || raw.channel || raw.creator || undefined,
     channel: raw.channel || raw.uploader || undefined,
     publishedAt: raw.upload_date || undefined,
+    viewCount: parseEngagementCount(raw.view_count),
+    likeCount: parseEngagementCount(raw.like_count),
+    commentCount: parseEngagementCount(raw.comment_count),
+    shareCount: parseEngagementCount(raw.repost_count ?? raw.share_count),
+    mediaType: carouselImages.length ? 'carousel' : 'video',
+    carouselImages: carouselImages.length ? carouselImages : undefined,
     captions: captions || undefined,
     captionLanguage: captions ? 'en' : undefined,
     formats: videoFormats,
@@ -268,29 +494,36 @@ export interface CreateDownloadParams {
   audioOnly?: boolean;
   start?: string;
   end?: string;
+  carousel?: boolean;
+  title?: string;
 }
 
 export async function createDownloadJob(params: CreateDownloadParams): Promise<DownloadJob> {
-  const { url, formatId, quality, audioOnly, start, end } = params;
+  const { url, formatId, quality, audioOnly, start, end, carousel, title } = params;
   const id = randomUUID();
   const now = Date.now();
 
   const isAudio = Boolean(audioOnly || formatId?.startsWith('audio'));
-  const targetExt = isAudio ? (formatId === 'audio-m4a' ? 'm4a' : 'mp3') : 'mp4';
+  const targetExt = carousel ? 'zip' : isAudio ? (formatId === 'audio-m4a' ? 'm4a' : 'mp3') : 'mp4';
   const outputTemplate = path.join(config.storageDir, `${id}.%(ext)s`);
 
   const job: DownloadJob = {
     id,
     url,
-    title: 'Downloading media...',
+    title: title || 'Downloading media...',
     status: 'downloading',
     progress: 0,
     createdAt: now,
     expiresAt: now + config.retentionMs,
-    formatLabel: isAudio ? 'Audio' : (quality ? `${quality}p MP4` : 'Best MP4')
+    formatLabel: carousel ? 'TikTok carousel ZIP' : isAudio ? 'Audio' : (quality ? `${quality}p MP4` : 'Best MP4')
   };
 
   downloadJobs.set(id, job);
+
+  if (carousel) {
+    void downloadTikTokCarousel(job, url);
+    return job;
+  }
 
   // Build yt-dlp arguments
   const args = [
@@ -413,6 +646,9 @@ export async function cleanupExpiredDownloads(): Promise<void> {
       downloadJobs.delete(id);
       if (job.outputPath) {
         await fs.rm(job.outputPath, { force: true }).catch(() => {});
+      }
+      if (job.workingDirectory) {
+        await fs.rm(job.workingDirectory, { recursive: true, force: true }).catch(() => {});
       }
     }
   }

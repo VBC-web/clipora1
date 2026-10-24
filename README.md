@@ -6,6 +6,7 @@ Clipora is a responsive video utility with an Astro frontend, a hydrated React d
 - Node.js 20+ (tested with Node 22)
 - npm 10+
 - FFmpeg and FFprobe available on `PATH`
+- Python 3.10+ with `python -m pip install -r backend/requirements.txt`
 
 ## Local development
 ```bash
@@ -33,8 +34,9 @@ The root `render.yaml` deploys the Astro frontend as a static site and the API a
 
 ## Current provider support
 - Upload: media inspection and FFmpeg trimming are implemented.
-- Direct video URL: recognized; safe remote metadata inspection is limited and no remote URL is sent to FFmpeg. Remote trimming/download requires a dedicated approved source integration.
-- YouTube, Instagram, TikTok, Facebook, X, Twitch, Kick, Reddit, Vimeo: identified for useful unsupported/authentication responses; no downloader is falsely advertised. Add official API credentials/adapters as permitted.
+- Public video URLs: metadata, source-reported engagement counts, and available formats are shown when yt-dlp can inspect the link. Quality and count fields may be omitted by the source.
+- TikTok photo posts: public carousel slides can be packaged into a ZIP (up to 20 images, 10 MB per image) when gallery-dl can enumerate them. This does not bypass login, privacy, or other access controls.
+- Upload: media inspection and FFmpeg trimming are implemented.
 
 This project does not bypass DRM, authentication, privacy settings, or access controls. Only process content you own or are authorized to use.
 

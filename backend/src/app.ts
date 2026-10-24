@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import fs from 'node:fs/promises';
 import { config } from './config/env.js';
-import { parseHttpUrl } from './utils/url-validation.js';
+import { detectProvider, parseHttpUrl } from './utils/url-validation.js';
 import { errorHandler } from './middleware/error-handler.js';
 import {
   getYtDlpMetadata,
@@ -103,7 +103,7 @@ app.get('/api/stream', async (req, res) => {
 });
 
 app.post('/api/download', async (req, res) => {
-  const { url, formatId, quality, audioOnly, start, end } = req.body || {};
+  const { url, formatId, quality, audioOnly, start, end, carousel, title } = req.body || {};
   const trimmedUrl = String(url || '').trim();
   if (!trimmedUrl) {
     return res.status(400).json({ error: 'Video URL is required.' });
@@ -111,11 +111,16 @@ app.post('/api/download', async (req, res) => {
 
   try {
     parseHttpUrl(trimmedUrl);
+    if (carousel && detectProvider(trimmedUrl) !== 'tiktok') {
+      throw new Error('Carousel downloads are currently available for TikTok photo posts only.');
+    }
     const job = await createDownloadJob({
       url: trimmedUrl,
       formatId,
       quality: quality ? Number(quality) : undefined,
       audioOnly: Boolean(audioOnly),
+      carousel: Boolean(carousel),
+      title: title ? String(title).slice(0, 160) : undefined,
       start: start ? String(start).trim() : undefined,
       end: end ? String(end).trim() : undefined
     });
@@ -177,6 +182,9 @@ app.delete('/api/download/:jobId', async (req, res) => {
   downloadJobs.delete(job.id);
   if (job.outputPath) {
     await fs.rm(job.outputPath, { force: true }).catch(() => {});
+  }
+  if (job.workingDirectory) {
+    await fs.rm(job.workingDirectory, { recursive: true, force: true }).catch(() => {});
   }
   res.status(204).end();
 });

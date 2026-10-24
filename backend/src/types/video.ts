@@ -27,6 +27,12 @@ export interface VideoMetadata {
   uploader?: string;
   channel?: string;
   publishedAt?: string;
+  viewCount?: number;
+  likeCount?: number;
+  commentCount?: number;
+  shareCount?: number;
+  mediaType?: 'video' | 'carousel';
+  carouselImages?: { url: string; index: number }[];
   captions?: string;
   captionLanguage?: string;
   formats: VideoFormat[];
@@ -53,6 +59,7 @@ export interface DownloadJob {
   createdAt: number;
   expiresAt: number;
   outputPath?: string;
+  workingDirectory?: string;
   filename?: string;
   filesize?: number;
   filesizeFormatted?: string;

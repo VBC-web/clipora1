@@ -54,6 +54,12 @@ interface VideoMetadata {
   uploader?: string;
   channel?: string;
   publishedAt?: string;
+  viewCount?: number;
+  likeCount?: number;
+  commentCount?: number;
+  shareCount?: number;
+  mediaType?: 'video' | 'carousel';
+  carouselImages?: { url: string; index: number }[];
   captions?: string;
   captionLanguage?: string;
   formats: VideoFormat[];
@@ -95,6 +101,7 @@ export function DownloaderPage({ platform }: DownloaderPageProps) {
   const [faqOpen, setFaqOpen] = useState<number | null>(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [platformDropdown, setPlatformDropdown] = useState(false);
+  const [legalDropdown, setLegalDropdown] = useState(false);
   const [copiedText, setCopiedText] = useState<'description' | 'captions' | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -212,7 +219,7 @@ export function DownloaderPage({ platform }: DownloaderPageProps) {
     inputRef.current?.focus();
   }
 
-  async function startDownload(formatId: string, quality?: number, isAudio = false, useTrim = false) {
+  async function startDownload(formatId: string, quality?: number, isAudio = false, useTrim = false, carousel = false) {
     if (!metadata) return;
     setDownloadError('');
     setActiveJob({
@@ -228,7 +235,9 @@ export function DownloaderPage({ platform }: DownloaderPageProps) {
         url: metadata.url,
         formatId,
         quality,
-        audioOnly: isAudio
+        audioOnly: isAudio,
+        carousel,
+        title: metadata.title
       };
       if (useTrim) {
         body.start = trimStart;
@@ -293,7 +302,10 @@ export function DownloaderPage({ platform }: DownloaderPageProps) {
               <button
                 type="button"
                 className="dropdown-toggle"
-                onClick={() => setPlatformDropdown(!platformDropdown)}
+                onClick={() => {
+                  setPlatformDropdown(!platformDropdown);
+                  setLegalDropdown(false);
+                }}
                 aria-expanded={platformDropdown}
               >
                 More <ChevronDown size={14} />
@@ -307,16 +319,34 @@ export function DownloaderPage({ platform }: DownloaderPageProps) {
                       className={p.id === platform.id ? 'active' : ''}
                       onClick={() => {
                         setPlatformDropdown(false);
+                        setLegalDropdown(false);
                         setMenuOpen(false);
                       }}
                     >
                       <span>{p.name}</span>
                     </a>
                   ))}
-                  <span className="dropdown-divider" />
-                  <a href="/fair-use" onClick={() => setPlatformDropdown(false)}>Fair Use & Disclaimer</a>
-                  <a href="/terms-of-service" onClick={() => setPlatformDropdown(false)}>Terms of Service</a>
-                  <a href="/privacy-policy" onClick={() => setPlatformDropdown(false)}>Privacy Policy</a>
+                </div>
+              )}
+            </div>
+
+            <div className="platform-nav-dropdown-wrap">
+              <button
+                type="button"
+                className="dropdown-toggle"
+                onClick={() => {
+                  setLegalDropdown(!legalDropdown);
+                  setPlatformDropdown(false);
+                }}
+                aria-expanded={legalDropdown}
+              >
+                Legal <ChevronDown size={14} />
+              </button>
+              {legalDropdown && (
+                <div className="dropdown-menu">
+                  <a href="/fair-use" onClick={() => { setLegalDropdown(false); setMenuOpen(false); }}>Fair Use & Disclaimer</a>
+                  <a href="/terms-of-service" onClick={() => { setLegalDropdown(false); setMenuOpen(false); }}>Terms of Service</a>
+                  <a href="/privacy-policy" onClick={() => { setLegalDropdown(false); setMenuOpen(false); }}>Privacy Policy</a>
                 </div>
               )}
             </div>
@@ -448,15 +478,17 @@ export function DownloaderPage({ platform }: DownloaderPageProps) {
             {metadata && (
               <div className="media-ready-card">
                 {/* ONLINE VIDEO PLAYER */}
-                <OnlineVideoPlayer
-                  title={metadata.title}
-                  thumbnail={metadata.thumbnail}
-                  durationFormatted={metadata.durationFormatted}
-                  provider={metadata.provider}
-                  embedUrl={metadata.embedUrl}
-                  streamUrl={metadata.streamUrl}
-                  apiBase={API}
-                />
+                {metadata.mediaType !== 'carousel' && (
+                  <OnlineVideoPlayer
+                    title={metadata.title}
+                    thumbnail={metadata.thumbnail}
+                    durationFormatted={metadata.durationFormatted}
+                    provider={metadata.provider}
+                    embedUrl={metadata.embedUrl}
+                    streamUrl={metadata.streamUrl}
+                    apiBase={API}
+                  />
+                )}
 
                 <div className="media-preview-row">
                   <div className="media-info-column">
@@ -464,6 +496,47 @@ export function DownloaderPage({ platform }: DownloaderPageProps) {
                     <h2 className="media-title">{metadata.title}</h2>
                     {metadata.uploader && (
                       <p className="media-author">By <strong>{metadata.uploader}</strong></p>
+                    )}
+                    {[metadata.viewCount, metadata.likeCount, metadata.commentCount, metadata.shareCount].some(value => value !== undefined) && (
+                      <dl className="engagement-stats" aria-label="Video engagement">
+                        {[
+                          ['Views', metadata.viewCount],
+                          ['Likes', metadata.likeCount],
+                          ['Comments', metadata.commentCount],
+                          ['Shares', metadata.shareCount]
+                        ].filter(([, value]) => value !== undefined).map(([label, value]) => (
+                          <div key={label}>
+                            <dt>{label}</dt>
+                            <dd>{new Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 1 }).format(value as number)}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                    )}
+                    {metadata.carouselImages && metadata.carouselImages.length > 0 && (
+                      <section className="carousel-preview" aria-label="Carousel images">
+                        <div className="carousel-preview-header">
+                          <div>
+                            <h3>Photo carousel</h3>
+                            <p>{metadata.carouselImages.length} images from this post</p>
+                          </div>
+                          <button
+                            type="button"
+                            className="format-dl-btn"
+                            onClick={() => startDownload('carousel', undefined, false, false, true)}
+                            disabled={Boolean(activeJob && ['downloading', 'processing'].includes(activeJob.status))}
+                          >
+                            <ArrowDownToLine size={15} /> Download ZIP
+                          </button>
+                        </div>
+                        <div className="carousel-image-grid">
+                          {metadata.carouselImages.map(image => (
+                            <figure key={image.index}>
+                              <img src={image.url} alt={`${metadata.title}, slide ${image.index}`} loading="lazy" />
+                              <figcaption>{String(image.index).padStart(2, '0')}</figcaption>
+                            </figure>
+                          ))}
+                        </div>
+                      </section>
                     )}
                     {metadata.description && (
                       <div className="metadata-copy-section">
@@ -493,6 +566,7 @@ export function DownloaderPage({ platform }: DownloaderPageProps) {
                 </div>
 
                 {/* FORMAT / QUALITY SELECTION TABS */}
+                {metadata.mediaType !== 'carousel' && (
                 <div className="format-tabs-wrap">
                   <div className="format-tabs-header">
                     <button
@@ -630,6 +704,7 @@ export function DownloaderPage({ platform }: DownloaderPageProps) {
                     </div>
                   )}
                 </div>
+                )}
               </div>
             )}
 
